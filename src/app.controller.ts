@@ -10,12 +10,7 @@ export class AppController {
   ) {}
 
   @Get()
-  async getHello(): Promise<string> {
-    const output = await this.aiService.generateText(
-      'what is the highest building in the worl',
-    );
-
-    return output;
-    // return this.appService.getHello();
+  async getHello(): Promise<null> {
+    return null;
   }
 }
