@@ -1,12 +1,11 @@
-import { HttpService } from '@nestjs/axios';
 import { Injectable } from '@nestjs/common';
 import { Configuration, OpenAIApi } from 'openai';
 
 @Injectable()
 export class AiService {
-  private openai: OpenAIApi;
+  private readonly openai: OpenAIApi;
 
-  constructor(private httpService: HttpService) {
+  constructor() {
     const configuration = new Configuration({
       apiKey: process.env.OPENAI_API_KEY,
     });
@@ -15,10 +14,15 @@ export class AiService {
   }
 
   async generateText(prompt: string): Promise<string> {
-    const chatCompletion = await this.openai.createChatCompletion({
-      model: 'gpt-3.5-turbo',
-      messages: [{ role: 'user', content: prompt }],
-    });
-    return chatCompletion.data.choices[0].message.content;
+    try {
+      return 'bla bla bla my name is GPT';
+      const chatCompletion = await this.openai.createChatCompletion({
+        model: 'gpt-3.5-turbo',
+        messages: [{ role: 'user', content: prompt }],
+      });
+      return chatCompletion.data.choices[0].message.content;
+    } catch (error) {
+      throw error;
+    }
   }
 }
