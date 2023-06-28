@@ -16,7 +16,7 @@ export class AiService {
   async generateText(prompt: string): Promise<string> {
     try {
       const chatCompletion = await this.openai.createChatCompletion({
-        model: 'gpt-3.5-turbo',
+        model: process.env.AI_MODEL,
         messages: [{ role: 'user', content: prompt }],
       });
       return chatCompletion.data.choices[0].message.content;
