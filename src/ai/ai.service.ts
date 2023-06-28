@@ -15,7 +15,6 @@ export class AiService {
 
   async generateText(prompt: string): Promise<string> {
     try {
-      return 'bla bla bla my name is GPT';
       const chatCompletion = await this.openai.createChatCompletion({
         model: 'gpt-3.5-turbo',
         messages: [{ role: 'user', content: prompt }],

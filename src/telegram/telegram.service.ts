@@ -8,6 +8,17 @@ enum MainMenuOptions {
   SETTINGS = 'SETTINGS',
 }
 
+interface Message {
+  role: string;
+  text: string;
+}
+
+interface UserData {
+  messages: Message[];
+}
+
+const usersData: Map<number, UserData> = new Map();
+
 @Injectable()
 export class TelegramService {
   private readonly bot: TelegramBot;
@@ -30,13 +41,13 @@ export class TelegramService {
           inline_keyboard: [
             [
               {
-                text: this.i18n.t('menu.new_chat'),
+                text: this.i18n.t('app.new_chat'),
                 callback_data: MainMenuOptions.NEW_CHAT,
               },
             ],
             [
               {
-                text: this.i18n.t('menu.settings'),
+                text: this.i18n.t('app.settings'),
                 callback_data: MainMenuOptions.SETTINGS,
               },
             ],
@@ -53,7 +64,7 @@ export class TelegramService {
 
     this.bot.on(
       'callback_query',
-      (callbackQuery: TelegramBot.CallbackQuery) => {
+      async (callbackQuery: TelegramBot.CallbackQuery) => {
         const action = callbackQuery.data;
 
         const msg = callbackQuery.message;
@@ -65,9 +76,10 @@ export class TelegramService {
 
         switch (action) {
           case MainMenuOptions.NEW_CHAT:
-            newChat(msg.chat.id);
-            text = 'Enter Your Prompt:';
+            text: this.i18n.t('app.starting_new_chat_msg');
+            // clearData();
             break;
+          case MainMenuOptions.SETTINGS:
 
           default:
             break;
@@ -79,10 +91,43 @@ export class TelegramService {
       },
     );
 
-    const newChat = async (chatId: number) => {
-      // this.bot.sendMessage(chatId, 'Enter Your Prompt');
+    this.bot.on('message', async (msg: TelegramBot.Message) => {
+      if (!msg.text.startsWith('/')) {
+        const userId: number = msg.from.id;
 
-      return null;
-    };
+        // Check if data for this user already exists
+        if (!usersData.has(userId)) {
+          usersData.set(userId, { messages: [] });
+        }
+
+        // Store the data for this user
+        const userData = usersData.get(userId);
+        userData.messages.push({
+          role: msg.from.is_bot ? 'Assistant' : 'User',
+          text: msg.text,
+        });
+
+        const conversation = userData.messages
+          .map((message) => {
+            return `${message.role}: ${message.text}`;
+          })
+          .join('\n');
+
+        try {
+          const output = await this.aiService.generateText(conversation);
+          const reply = await this.bot.sendMessage(msg.chat.id, output);
+
+          // Add bot's reply to user's data
+          userData.messages.push({
+            role: 'Assistant',
+            text: reply.text,
+          });
+        } catch (error) {
+          this.bot.sendMessage(msg.chat.id, this.i18n.t('app.error_msg'));
+        }
+
+        console.log(userData.messages);
+      }
+    });
   }
 }
