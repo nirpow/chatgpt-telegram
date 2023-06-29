@@ -33,33 +33,37 @@ export class TelegramService {
     this.initializeBot();
   }
 
+  showMainMenu(chatId: number): void {
+    const SendMessageOptions: TelegramBot.SendMessageOptions = {
+      reply_markup: {
+        inline_keyboard: [
+          [
+            {
+              text: this.i18n.t('app.new_chat'),
+              callback_data: MainMenuOptions.NEW_CHAT,
+            },
+          ],
+          [
+            {
+              text: this.i18n.t('app.settings'),
+              callback_data: MainMenuOptions.SETTINGS,
+            },
+          ],
+        ],
+      },
+    };
+
+    this.bot.sendMessage(
+      chatId,
+      this.i18n.t('app.opening_msg'),
+      SendMessageOptions,
+    );
+  }
+
   private initializeBot(): void {
     this.bot.onText(/\/start/, (msg: TelegramBot.Message) => {
       const chatId = msg.chat.id;
-      const SendMessageOptions: TelegramBot.SendMessageOptions = {
-        reply_markup: {
-          inline_keyboard: [
-            [
-              {
-                text: this.i18n.t('app.new_chat'),
-                callback_data: MainMenuOptions.NEW_CHAT,
-              },
-            ],
-            [
-              {
-                text: this.i18n.t('app.settings'),
-                callback_data: MainMenuOptions.SETTINGS,
-              },
-            ],
-          ],
-        },
-      };
-
-      this.bot.sendMessage(
-        chatId,
-        'Welcome to our bot, choose an option:',
-        SendMessageOptions,
-      );
+      this.showMainMenu(chatId);
     });
 
     this.bot.on(
@@ -76,8 +80,7 @@ export class TelegramService {
 
         switch (action) {
           case MainMenuOptions.NEW_CHAT:
-            text: this.i18n.t('app.starting_new_chat_msg');
-            // clearData();
+            text = this.i18n.t('app.starting_new_chat_msg');
             break;
           case MainMenuOptions.SETTINGS:
 
@@ -125,8 +128,7 @@ export class TelegramService {
         } catch (error) {
           this.bot.sendMessage(msg.chat.id, this.i18n.t('app.error_msg'));
         }
-
-        console.log(userData.messages);
+        console.log(`str len ${userData.messages.toString().length}`);
       }
     });
   }
