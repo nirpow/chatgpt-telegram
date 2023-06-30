@@ -72,14 +72,21 @@ export class TelegramService {
         const action = callbackQuery.data;
 
         const msg = callbackQuery.message;
+
         const editMesssageTextOptions: TelegramBot.EditMessageTextOptions = {
           chat_id: msg.chat.id,
           message_id: msg.message_id,
         };
         let text: string;
+        const userId: number = msg.chat.id;
 
         switch (action) {
           case MainMenuOptions.NEW_CHAT:
+            // Check if data for this user already exists and delete it
+            if (usersData.has(userId)) {
+              usersData.set(userId, { messages: [] });
+            }
+
             text = this.i18n.t('app.starting_new_chat_msg');
             break;
           case MainMenuOptions.SETTINGS:
