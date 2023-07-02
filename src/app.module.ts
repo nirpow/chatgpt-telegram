@@ -6,6 +6,8 @@ import { AiService } from './ai/ai.service';
 import { ConfigModule } from '@nestjs/config';
 import { AcceptLanguageResolver, I18nModule, QueryResolver } from 'nestjs-i18n';
 import { join } from 'path';
+import { DatabaseService } from './database/database.service';
+import { DatabaseModule } from './database/database.module';
 
 @Module({
   imports: [
@@ -22,8 +24,9 @@ import { join } from 'path';
       ],
       // typesOutputPath: join(__dirname, '../src/generated/i18n.generated.ts'),
     }),
+    DatabaseModule,
   ],
   controllers: [AppController],
-  providers: [AppService, TelegramService, AiService],
+  providers: [AppService, TelegramService, AiService, DatabaseService],
 })
 export class AppModule {}

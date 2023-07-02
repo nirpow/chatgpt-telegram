@@ -33,6 +33,12 @@ export class TelegramService {
     this.initializeBot();
   }
 
+  startNewChat(userId: number): void {
+    if (usersData.has(userId)) {
+      usersData.set(userId, { messages: [] });
+    }
+  }
+
   showMainMenu(chatId: number): void {
     const SendMessageOptions: TelegramBot.SendMessageOptions = {
       reply_markup: {
@@ -134,6 +140,7 @@ export class TelegramService {
           });
         } catch (error) {
           this.bot.sendMessage(msg.chat.id, this.i18n.t('app.error_msg'));
+          this.startNewChat(msg.chat.id);
         }
         console.log(`str len ${userData.messages.toString().length}`);
       }
