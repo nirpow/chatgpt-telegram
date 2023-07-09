@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import * as TelegramBot from 'node-telegram-bot-api';
-import { AiService } from 'src/ai/ai.service';
 import { I18nService } from 'nestjs-i18n';
 import { ChatService } from 'src/chat/chat.service';
 
@@ -25,7 +24,6 @@ export class TelegramService {
   private readonly bot: TelegramBot;
 
   constructor(
-    private readonly aiService: AiService,
     private readonly i18n: I18nService,
     private readonly chatService: ChatService,
   ) {
