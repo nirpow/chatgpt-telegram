@@ -8,17 +8,6 @@ enum MainMenuOptions {
   SETTINGS = 'SETTINGS',
 }
 
-interface Message {
-  role: string;
-  text: string;
-}
-
-interface UserData {
-  messages: Message[];
-}
-
-const usersData: Map<number, UserData> = new Map();
-
 @Injectable()
 export class TelegramService {
   private readonly bot: TelegramBot;
@@ -34,9 +23,7 @@ export class TelegramService {
   }
 
   startNewChat(userId: number): void {
-    if (usersData.has(userId)) {
-      usersData.set(userId, { messages: [] });
-    }
+    this.chatService.startNewChat(userId);
   }
 
   showMainMenu(chatId: number): void {
