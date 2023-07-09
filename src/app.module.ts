@@ -6,8 +6,8 @@ import { AiService } from './ai/ai.service';
 import { ConfigModule } from '@nestjs/config';
 import { AcceptLanguageResolver, I18nModule, QueryResolver } from 'nestjs-i18n';
 import { join } from 'path';
-import { DatabaseService } from './database/database.service';
 import { DatabaseModule } from './database/database.module';
+import { ChatService } from './chat/chat.service';
 
 @Module({
   imports: [
@@ -27,6 +27,6 @@ import { DatabaseModule } from './database/database.module';
     DatabaseModule,
   ],
   controllers: [AppController],
-  providers: [AppService, TelegramService, AiService, DatabaseService],
+  providers: [AppService, TelegramService, AiService, ChatService],
 })
 export class AppModule {}

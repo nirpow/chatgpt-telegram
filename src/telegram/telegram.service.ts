@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import * as TelegramBot from 'node-telegram-bot-api';
 import { AiService } from 'src/ai/ai.service';
 import { I18nService } from 'nestjs-i18n';
+import { ChatService } from 'src/chat/chat.service';
 
 enum MainMenuOptions {
   NEW_CHAT = 'NEW_CHAT',
@@ -26,6 +27,7 @@ export class TelegramService {
   constructor(
     private readonly aiService: AiService,
     private readonly i18n: I18nService,
+    private readonly chatService: ChatService,
   ) {
     this.bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN, {
       polling: true,
@@ -74,7 +76,7 @@ export class TelegramService {
 
     this.bot.on(
       'callback_query',
-      async (callbackQuery: TelegramBot.CallbackQuery) => {
+      async (callbackQuery: TelegramBot.CallbackQuery): Promise<void> => {
         const action = callbackQuery.data;
 
         const msg = callbackQuery.message;
@@ -88,10 +90,7 @@ export class TelegramService {
 
         switch (action) {
           case MainMenuOptions.NEW_CHAT:
-            // Check if data for this user already exists and delete it
-            if (usersData.has(userId)) {
-              usersData.set(userId, { messages: [] });
-            }
+            this.startNewChat(userId);
 
             text = this.i18n.t('app.starting_new_chat_msg');
             break;
@@ -107,42 +106,20 @@ export class TelegramService {
       },
     );
 
-    this.bot.on('message', async (msg: TelegramBot.Message) => {
+    this.bot.on('message', async (msg: TelegramBot.Message): Promise<void> => {
       if (!msg.text.startsWith('/')) {
         const userId: number = msg.from.id;
 
-        // Check if data for this user already exists
-        if (!usersData.has(userId)) {
-          usersData.set(userId, { messages: [] });
-        }
-
-        // Store the data for this user
-        const userData = usersData.get(userId);
-        userData.messages.push({
-          role: msg.from.is_bot ? 'Assistant' : 'User',
-          text: msg.text,
-        });
-
-        const conversation = userData.messages
-          .map((message) => {
-            return `${message.role}: ${message.text}`;
-          })
-          .join('\n');
-
         try {
-          const output = await this.aiService.generateText(conversation);
-          const reply = await this.bot.sendMessage(msg.chat.id, output);
-
-          // Add bot's reply to user's data
-          userData.messages.push({
-            role: 'Assistant',
-            text: reply.text,
-          });
+          const output = await this.chatService.sendNewMassege(
+            msg.text,
+            userId,
+            msg.from.is_bot,
+          );
+          await this.bot.sendMessage(msg.chat.id, output);
         } catch (error) {
           this.bot.sendMessage(msg.chat.id, this.i18n.t('app.error_msg'));
-          this.startNewChat(msg.chat.id);
         }
-        console.log(`str len ${userData.messages.toString().length}`);
       }
     });
   }
