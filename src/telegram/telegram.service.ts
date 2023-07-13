@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import * as TelegramBot from 'node-telegram-bot-api';
 import { I18nService } from 'nestjs-i18n';
 import { ChatService } from 'src/chat/chat.service';
+import { AwaitingApiResponseException } from 'src/common/exceptions/awaiting_api_response_exception';
 
 enum MainMenuOptions {
   NEW_CHAT = 'NEW_CHAT',
@@ -22,8 +23,8 @@ export class TelegramService {
     this.initializeBot();
   }
 
-  startNewChat(userId: number): void {
-    this.chatService.startNewChat(userId);
+  startNewChat(): void {
+    this.chatService.startNewChat();
   }
 
   showMainMenu(chatId: number): void {
@@ -71,11 +72,10 @@ export class TelegramService {
           message_id: msg.message_id,
         };
         let text: string;
-        const userId: number = msg.chat.id;
 
         switch (action) {
           case MainMenuOptions.NEW_CHAT:
-            this.startNewChat(userId);
+            this.startNewChat();
 
             text = this.i18n.t('app.starting_new_chat_msg');
             break;
@@ -92,17 +92,24 @@ export class TelegramService {
     );
 
     this.bot.on('message', async (msg: TelegramBot.Message): Promise<void> => {
-      if (!msg.text.startsWith('/')) {
-        const userId: number = msg.from.id;
+      try {
+        if (!msg.text.startsWith('/')) {
+          const userId: number = msg.from.id;
 
-        try {
           const output = await this.chatService.sendNewMassege(
             msg.text,
             userId,
             msg.from.is_bot,
           );
           await this.bot.sendMessage(msg.chat.id, output);
-        } catch (error) {
+        }
+      } catch (error) {
+        if (error instanceof AwaitingApiResponseException) {
+          this.bot.sendMessage(
+            msg.chat.id,
+            this.i18n.t('app.ai_is_processing'),
+          );
+        } else {
           this.bot.sendMessage(msg.chat.id, this.i18n.t('app.error_msg'));
         }
       }

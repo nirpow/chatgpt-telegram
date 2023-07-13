@@ -1,32 +1,22 @@
 import { Injectable } from '@nestjs/common';
 import { AiService } from 'src/ai/ai.service';
+import { Roles } from 'src/common/enums/roles';
+import { AwaitingApiResponseException } from 'src/common/exceptions/awaiting_api_response_exception';
+import { Message } from 'src/common/interfaces/message';
 
-enum Roles {
-  USER_ROLE_NAME = 'User',
-  AI_ROLE_NAME = 'Assistant',
-}
-
-interface Message {
-  role: Roles;
-  text: string;
-}
-
-interface UserData {
+interface CurrentChatData {
+  title?: string;
   messages: Message[];
 }
-
-const usersData: Map<number, UserData> = new Map();
-
 @Injectable()
 export class ChatService {
-  // private readonly currentUser: User;
+  private currentChatData: CurrentChatData;
+  private isProcessing = false;
 
   constructor(private readonly aiService: AiService) {}
 
-  startNewChat(userId: number): void {
-    if (usersData.has(userId)) {
-      usersData.set(userId, { messages: [] });
-    }
+  startNewChat(): void {
+    this.currentChatData = { messages: [] };
   }
 
   async sendNewMassege(
@@ -34,33 +24,41 @@ export class ChatService {
     telegramUserId: number,
     isBot: boolean,
   ): Promise<string> {
-    // Check if data for this user already exists
-    if (!usersData.has(telegramUserId)) {
-      usersData.set(telegramUserId, { messages: [] });
+    try {
+      // Check if data is already exists
+      if (!this.currentChatData) {
+        this.currentChatData = { messages: [] };
+      }
+
+      if (this.isProcessing) {
+        throw new AwaitingApiResponseException();
+      } else {
+        this.isProcessing = true;
+
+        this.currentChatData.messages.push({
+          role: isBot ? Roles.AI_ROLE_NAME : Roles.USER_ROLE_NAME,
+          content: text,
+        });
+
+        const output = await this.aiService.generateText(
+          this.currentChatData.messages,
+        );
+
+        // Add bot's reply to user's data
+        this.currentChatData.messages.push({
+          role: Roles.AI_ROLE_NAME,
+          content: output,
+        });
+        console.log(
+          `str len ${this.currentChatData.messages.toString().length}`,
+        );
+
+        return output;
+      }
+    } catch (error) {
+      throw error;
+    } finally {
+      this.isProcessing = false;
     }
-
-    // Store the data for this user
-    const userData = usersData.get(telegramUserId);
-
-    userData.messages.push({
-      role: isBot ? Roles.AI_ROLE_NAME : Roles.USER_ROLE_NAME,
-      text: text,
-    });
-
-    const conversation = userData.messages
-      .map((message) => {
-        return `${message.role}: ${message.text}`;
-      })
-      .join('\n');
-
-    const output = await this.aiService.generateText(conversation);
-    // Add bot's reply to user's data
-    userData.messages.push({
-      role: Roles.AI_ROLE_NAME,
-      text: output,
-    });
-    console.log(`str len ${userData.messages.toString().length}`);
-
-    return output;
   }
 }
