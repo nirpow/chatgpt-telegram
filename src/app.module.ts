@@ -27,6 +27,6 @@ import { ChatService } from './chat/chat.service';
     DatabaseModule,
   ],
   controllers: [AppController],
-  providers: [AppService, TelegramService, AiService, ChatService],
+  providers: [AppService, AiService, ChatService, TelegramService],
 })
 export class AppModule {}
