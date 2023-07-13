@@ -94,13 +94,10 @@ export class TelegramService {
     this.bot.on('message', async (msg: TelegramBot.Message): Promise<void> => {
       try {
         if (!msg.text.startsWith('/')) {
-          const userId: number = msg.from.id;
-
-          const output = await this.chatService.sendNewMassege(
-            msg.text,
-            userId,
-            msg.from.is_bot,
-          );
+          const output = await this.chatService.sendNewMassege({
+            text: msg.text,
+            isBot: msg.from.is_bot,
+          });
           await this.bot.sendMessage(msg.chat.id, output);
         }
       } catch (error) {

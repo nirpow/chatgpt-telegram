@@ -3,6 +3,7 @@ import { AiService } from 'src/ai/ai.service';
 import { Roles } from 'src/common/enums/roles';
 import { AwaitingApiResponseException } from 'src/common/exceptions/awaiting_api_response_exception';
 import { Message } from 'src/common/interfaces/message';
+import { AI_INSTRUCTIONS } from 'src/common/strings/aiInstructions';
 
 interface CurrentChatData {
   title?: string;
@@ -19,11 +20,13 @@ export class ChatService {
     this.currentChatData = { messages: [] };
   }
 
-  async sendNewMassege(
-    text: string,
-    telegramUserId: number,
-    isBot: boolean,
-  ): Promise<string> {
+  async sendNewMassege({
+    text,
+    isBot,
+  }: {
+    text: string;
+    isBot: boolean;
+  }): Promise<string> {
     try {
       // Check if data is already exists
       if (!this.currentChatData) {
@@ -40,15 +43,24 @@ export class ChatService {
           content: text,
         });
 
-        const output = await this.aiService.generateText(
-          this.currentChatData.messages,
-        );
+        if (!this.currentChatData.title) {
+          this.currentChatData.title = await this.aiService.generateText({
+            messages: this.currentChatData.messages,
+            preInstruction: AI_INSTRUCTIONS.TITLE,
+            responseMaxLength: 27,
+          });
+        }
+
+        const output = await this.aiService.generateText({
+          messages: this.currentChatData.messages,
+        });
 
         // Add bot's reply to user's data
         this.currentChatData.messages.push({
           role: Roles.AI_ROLE_NAME,
           content: output,
         });
+        console.log(this.currentChatData.title);
         console.log(
           `str len ${this.currentChatData.messages.toString().length}`,
         );

@@ -5,7 +5,7 @@ import {
   OpenAIApi,
 } from 'openai';
 import { Message } from 'src/common/interfaces/message';
-
+import { trimString } from 'src/common/helpers/stringManipulation';
 @Injectable()
 export class AiService {
   private readonly openai: OpenAIApi;
@@ -18,18 +18,31 @@ export class AiService {
     this.openai = new OpenAIApi(configuration);
   }
 
-  async generateText(messages: Message[]): Promise<string> {
+  async generateText({
+    messages,
+    preInstruction,
+    responseMaxLength,
+  }: {
+    messages: Message[];
+    preInstruction?: string;
+    responseMaxLength?: number;
+  }): Promise<string> {
     try {
       const chatCompletion = await this.openai.createChatCompletion({
         model: process.env.AI_MODEL,
         messages: messages.map((msg) => {
           return {
             role: ChatCompletionRequestMessageRoleEnum[msg.role],
-            content: msg.content,
+            content: `${preInstruction ?? ''} ${msg.content}`,
           };
         }),
       });
-      return chatCompletion.data.choices[0].message.content;
+      const aiResponse = trimString(
+        chatCompletion.data.choices[0].message.content,
+        responseMaxLength,
+      );
+
+      return aiResponse;
     } catch (error) {
       throw error;
     }
