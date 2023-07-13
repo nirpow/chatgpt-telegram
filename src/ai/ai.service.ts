@@ -33,7 +33,7 @@ export class AiService {
         messages: messages.map((msg) => {
           return {
             role: ChatCompletionRequestMessageRoleEnum[msg.role],
-            content: `${preInstruction ?? ''} ${msg.content}`,
+            content: `${preInstruction ?? ''}${msg.content}`,
           };
         }),
       });
