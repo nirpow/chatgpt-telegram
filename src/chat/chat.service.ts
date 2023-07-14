@@ -7,7 +7,7 @@ import { AI_INSTRUCTIONS } from 'src/common/strings/aiInstructions';
 
 interface CurrentChatData {
   title?: string;
-  messages: Message[];
+  conversation: Message[];
 }
 @Injectable()
 export class ChatService {
@@ -17,52 +17,50 @@ export class ChatService {
   constructor(private readonly aiService: AiService) {}
 
   startNewChat(): void {
-    this.currentChatData = { messages: [] };
+    this.currentChatData = { conversation: [] };
   }
 
-  async sendNewMassege({
-    text,
-    isBot,
-  }: {
-    text: string;
-    isBot: boolean;
-  }): Promise<string> {
+  async sendNewMassege({ text }: { text: string }): Promise<string> {
     try {
       // Check if data is already exists
       if (!this.currentChatData) {
-        this.currentChatData = { messages: [] };
+        this.currentChatData = { conversation: [] };
       }
 
       if (this.isProcessing) {
-        throw new AwaitingApiResponseException();
+        throw new AwaitingApiResponseException(
+          'Response message is currently being processed',
+        );
       } else {
         this.isProcessing = true;
 
-        this.currentChatData.messages.push({
-          role: isBot ? Roles.AI_ROLE_NAME : Roles.USER_ROLE_NAME,
+        // Add user to conversation
+        this.currentChatData.conversation.push({
+          role: Roles.USER_ROLE_NAME,
           content: text,
         });
 
         if (!this.currentChatData.title) {
+          // Generate title
           this.currentChatData.title = await this.aiService.generateText({
-            messages: this.currentChatData.messages,
+            messages: this.currentChatData.conversation,
             preInstruction: AI_INSTRUCTIONS.TITLE,
             responseMaxLength: 27,
           });
         }
 
         const output = await this.aiService.generateText({
-          messages: this.currentChatData.messages,
+          messages: this.currentChatData.conversation,
         });
 
-        // Add bot's reply to user's data
-        this.currentChatData.messages.push({
+        // Add reply to conversation
+        this.currentChatData.conversation.push({
           role: Roles.AI_ROLE_NAME,
           content: output,
         });
         console.log(this.currentChatData.title);
         console.log(
-          `str len ${this.currentChatData.messages.toString().length}`,
+          `str len ${this.currentChatData.conversation.toString().length}`,
         );
 
         return output;
