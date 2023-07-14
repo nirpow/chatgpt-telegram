@@ -6,6 +6,7 @@ import {
 } from 'openai';
 import { Message } from 'src/common/interfaces/message';
 import { trimString } from 'src/common/helpers/stringManipulation';
+
 @Injectable()
 export class AiService {
   private readonly openai: OpenAIApi;
