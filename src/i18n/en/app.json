@@ -1,8 +1,12 @@
 {
   "opening_msg": "Welcome, choose an option:",
   "new_chat": "New Chat",
+  "chat_history": "History",
   "settings": "Settings",
   "starting_new_chat_msg": "Starting New Chat",
+  "loading_history_list": "Loading History",
   "error_msg": "An error occurred",
-  "ai_is_processing": "Thinking in progress..."
+  "ai_is_processing": "Thinking in progress...",
+  "enter_first_prompt": "Enter your prompt",
+  "select_chat_from_list": "Please select chat from the list:"
 }

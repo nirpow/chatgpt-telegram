@@ -1,6 +1,6 @@
-import { Roles } from '../enums/roles';
+import { ERoles } from '../enums/roles';
 
-export interface Message {
-  role: Roles;
+export interface IMessage {
+  role: ERoles;
   content: string;
 }
