@@ -1,6 +1,6 @@
 # ChatGPT Telegram Bot 
 
-This project is **currently under active development**. It's a boilerplate designed for integrating OpenAI's ChatGPT model with a Telegram bot through OpenAI's API. It serves as a starting point for your own ChatGPT ideas and applications.
+This project is **currently under active development**. It's a boilerplate designed for integrating OpenAI's ChatGPT api with a Telegram bot through OpenAI's API. It serves as a starting point for your own ChatGPT ideas and applications.
 
 ## Project Overview
 
