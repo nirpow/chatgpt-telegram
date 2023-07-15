@@ -4,7 +4,7 @@ import {
   Configuration,
   OpenAIApi,
 } from 'openai';
-import { Message } from 'src/common/interfaces/message';
+import { IMessage } from 'src/common/interfaces/message';
 import { trimString } from 'src/common/helpers/stringManipulation';
 
 @Injectable()
@@ -24,7 +24,7 @@ export class AiService {
     preInstruction,
     responseMaxLength,
   }: {
-    messages: Message[];
+    messages: IMessage[];
     preInstruction?: string;
     responseMaxLength?: number;
   }): Promise<string> {
